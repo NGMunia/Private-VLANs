@@ -13,19 +13,13 @@ This topology uses Private VLANs (PVLANs) to solve the residential isolation pro
   - [VLAN Scheme](#vlan-scheme)
   - [PVLAN — How It Works Here](#pvlan--how-it-works-here)
   - [Corporate Segment (VLAN 20)](#corporate-segment-vlan-20)
-  - [DHCP Server (VLAN 30)](#dhcp-server-vlan-30)
   - [Core Switch — The Brain](#core-switch--the-brain)
   - [Gateway / Router](#gateway--router)
 - [Configuration Snippets](#configuration-snippets)
   - [BLK-A-SW — Block Access Switch (PVLAN)](#blk-a-sw--block-access-switch-pvlan)
   - [CORE-SW — Layer 3 Switch](#core-sw--layer-3-switch)
-  - [Corp-SW — Corporate Access Switch](#corp-sw--corporate-access-switch)
   - [Gateway Router](#gateway-router)
   - [Windows Server 2012 — DHCP Scopes](#windows-server-2012--dhcp-scopes)
-- [Traffic Flow Walkthrough](#traffic-flow-walkthrough)
-- [Security Considerations](#security-considerations)
-- [Lab Environment](#lab-environment)
-- [Extending This Lab](#extending-this-lab)
 
 ---
 
