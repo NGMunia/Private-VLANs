@@ -19,7 +19,7 @@ This topology uses Private VLANs (PVLANs) to solve the residential isolation pro
   - [BLK-A-SW — Block Access Switch (PVLAN)](#blk-a-sw--block-access-switch-pvlan)
   - [CORE-SW — Layer 3 Switch](#core-sw--layer-3-switch)
   - [Gateway Router](#gateway-router)
-  - [Windows Server 2012 — DHCP Scopes](#windows-server-2012--dhcp-scopes)
+
 
 ---
 
