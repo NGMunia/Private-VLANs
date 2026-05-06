@@ -49,12 +49,11 @@ Below is the topology:
 
 | VLAN | Type              | Name        | Subnet             | Purpose                          |
 |------|-------------------|-------------|--------------------|----------------------------------|
-| 20   | Primary PVLAN     | RESIDENTIAL | 192.168.20.0/26    | Residential block addressing       |
-| 200  | Isolated PVLAN    | FLAT-ISO    | (shares VLAN 20)   | Per-flat tenant isolation        |
-| 201  | Community VLAN    | LOBBY       | 192.168.20.0/26    | Lobby Devices PCs              |
-| 10   | Standard VLAN     | CORPORATE   | 192.168.20.0/24    | Corporate LAN 
-Server LAN           |
-| -   | DHCP-DNS-DNS FOWARDING           | 10.0.0.6/32        | DHCP/services
+| 20   | Primary PVLAN     | RESIDENTIAL | 192.168.20.0/26    | Residential block addressing     |
+| 200  | Isolated PVLAN    | FLAT-ISO    | 192.168.20.0/26    | Per-flat tenant isolation        |
+| 201  | Community VLAN    | LOBBY       | 192.168.20.0/26    | Lobby Devices PCs                |
+| 10   | Standard VLAN     | CORPORATE   | 192.168.20.0/24    | Corporate LAN                    |
+|  -   | Services BLK      | DHCP/DNS    | 10.0.0.6/32        | DHCP/DNS server, DNS fowarding   |
 
 
 > **Note on PVLAN addressing:** Isolated/community ports in VLAN 200 still use the 192.168.20.0/26 address space. The PVLAN relationship maps VLAN 200/201 traffic up to primary VLAN 20, so the SVI on CORE-SW only needs one IP for the entire residential block — `192.168.20.0/26`.
