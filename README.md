@@ -32,7 +32,7 @@ You *could* give every flat its own VLAN, but that is not scalable. A 50-flat bu
 
 The corporate segment is a straightforward separate VLAN. DHCP is centralized.
 
-Cisco router is configured as a DHCP/DNS serve, sitting in its own network, serving scopes for both the residential block and the corporate floor via DHCP relay.
+Cisco router is configured as a DHCP/DNS server, sitting in its own network, serving scopes for both the residential block and the corporate floor via DHCP relay.
 
 ---
 
@@ -296,16 +296,21 @@ ip dhcp pool RESIDENTIAL-DHCP-POOL
  network 192.168.20.0 255.255.255.128
  default-router 192.168.20.1
  dns-server 10.0.0.6
+ domain-name munia.local
  lease 0 3
 
 ip dhcp pool CORPORATE-DHCP-POOL
  network 192.168.10.0 255.255.255.0
  default-router 192.168.10.1
  dns-server 10.0.0.6
+ domain-name munia.local
  lease 0 3
 !
 !
 !
+ip domain name munia.local
+ip host gateway.munia.local 10.0.0.2
+ip host core-sw.munia.local 192.168.10.1
 ip name-server 8.8.8.8
 ip name-server 8.8.4.4
 !
@@ -317,4 +322,72 @@ interface Ethernet0/0
 ip default-gateway 10.0.0.5
 !
 ip dns server
+```
 ---
+
+## Verifying:
+
+From PC5
+``ìos
+PC5> show ip all
+
+NAME   IP/MASK              GATEWAY           MAC                DNS
+PC5    192.168.10.12/24     192.168.10.1      00:50:79:66:68:00  10.0.0.6
+
+PC5>
+PC5> ping www.google.com
+www.google.com resolved to 142.251.156.119
+
+84 bytes from 142.251.156.119 icmp_seq=1 ttl=125 time=245.389 ms
+84 bytes from 142.251.156.119 icmp_seq=2 ttl=125 time=101.823 ms
+84 bytes from 142.251.156.119 icmp_seq=3 ttl=125 time=20.832 ms
+84 bytes from 142.251.156.119 icmp_seq=4 ttl=125 time=16.401 ms
+84 bytes from 142.251.156.119 icmp_seq=5 ttl=125 time=19.509 ms
+
+PC5>
+PC5> ping gateway.munia.local
+gateway.munia.local resolved to 10.0.0.2
+
+84 bytes from 10.0.0.2 icmp_seq=1 ttl=254 time=2.245 ms
+84 bytes from 10.0.0.2 icmp_seq=2 ttl=254 time=2.507 ms
+84 bytes from 10.0.0.2 icmp_seq=3 ttl=254 time=4.344 ms
+84 bytes from 10.0.0.2 icmp_seq=4 ttl=254 time=2.720 ms
+84 bytes from 10.0.0.2 icmp_seq=5 ttl=254 time=2.505 ms
+
+```
+
+From PC3
+```ios
+PC3> show ip all
+
+NAME   IP/MASK              GATEWAY           MAC                DNS
+PC3    192.168.20.16/25     192.168.20.1      00:50:79:66:68:01  10.0.0.6
+
+PC3>
+PC3> ping gateway.munia.local
+gateway.munia.local resolved to 10.0.0.2
+
+84 bytes from 10.0.0.2 icmp_seq=1 ttl=254 time=1.894 ms
+84 bytes from 10.0.0.2 icmp_seq=2 ttl=254 time=2.011 ms
+84 bytes from 10.0.0.2 icmp_seq=3 ttl=254 time=2.554 ms
+84 bytes from 10.0.0.2 icmp_seq=4 ttl=254 time=1.994 ms
+84 bytes from 10.0.0.2 icmp_seq=5 ttl=254 time=2.380 ms
+
+PC3> ping 192.168.20.17
+
+84 bytes from 192.168.20.17 icmp_seq=1 ttl=64 time=1.616 ms
+84 bytes from 192.168.20.17 icmp_seq=2 ttl=64 time=1.697 ms
+84 bytes from 192.168.20.17 icmp_seq=3 ttl=64 time=2.471 ms
+84 bytes from 192.168.20.17 icmp_seq=4 ttl=64 time=1.094 ms
+84 bytes from 192.168.20.17 icmp_seq=5 ttl=64 time=1.650 ms
+
+PC3> ping www.google.com
+www.google.com resolved to 142.251.150.119
+
+84 bytes from 142.251.150.119 icmp_seq=1 ttl=125 time=18.040 ms
+84 bytes from 142.251.150.119 icmp_seq=2 ttl=125 time=20.226 ms
+84 bytes from 142.251.150.119 icmp_seq=3 ttl=125 time=19.829 ms
+84 bytes from 142.251.150.119 icmp_seq=4 ttl=125 time=15.628 ms
+84 bytes from 142.251.150.119 icmp_seq=5 ttl=125 time=18.289 ms
+
+```
