@@ -328,7 +328,7 @@ ip dns server
 ## Verifying:
 
 From PC5
-``ìos
+```ìos
 PC5> show ip all
 
 NAME   IP/MASK              GATEWAY           MAC                DNS
