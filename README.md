@@ -18,7 +18,7 @@ This topology uses Private VLANs (PVLANs) to solve the residential isolation pro
 - [Configuration Snippets](#configuration-snippets)
   - [BLK-A-SW — Block Access Switch (PVLAN)](#blk-a-sw--block-access-switch-pvlan)
   - [CORE-SW — Layer 3 Switch](#core-sw--layer-3-switch)
-  - [Gateway Router](#gateway-router)
+
 
 
 ---
@@ -254,40 +254,102 @@ router ospf 1
 ```
 ---
 
-### Gateway Router
+### Fortigate firewall OSPF config
+
+```bash
+Perimeter-Firewall # config router ospf
+
+Perimeter-Firewall (ospf) # show
+config router ospf
+    set auto-cost-ref-bandwidth 100000
+    set default-information-originate enable
+    set router-id 2.2.2.2
+    config area
+        edit 0.0.0.0
+        next
+    end
+    config ospf-interface
+        edit "LAN-Link"
+            set interface "port1"
+            set network-type point-to-point
+        next
+    end
+    config network
+        edit 1
+            set prefix 10.0.0.0 255.255.255.252
+        next
+    end
+    set passive-interface "port2"
+    config redistribute "connected"
+    end
+    config redistribute "static"
+    end
+
+```
+
+## Configuration snippet of Firewall-Svr IOS Zone based firewall
 
 ```ios
-! LAN-facing interface toward CORE-SW
+class-map type inspect match-all Inside-Outside-class
+ match access-group name Inside-Outside-acl
+class-map type inspect match-all Outside-Inside-class
+ match access-group name Outside-Inside-acl
+!
+policy-map type inspect Outside-Inside-Policy
+ class type inspect Outside-Inside-class
+  inspect
+ class class-default
+  drop
+policy-map type inspect Inside-Outside-Policy
+ class type inspect Inside-Outside-class
+  inspect
+ class class-default
+  drop
+!
+zone security Inside
+zone security Outside
+zone-pair security Outside-Inside-Zone source Outside destination Inside
+ service-policy type inspect Outside-Inside-Policy
+zone-pair security Inside-Outside-Zone source Inside destination Outside
+ service-policy type inspect Inside-Outside-Policy
+!
+
 !
 interface Ethernet0/0
- description LINK TO CORE SWITCH
- ip address 10.0.0.2 255.255.255.252
+ ip address 192.168.30.1 255.255.255.0
  ip nat inside
  ip virtual-reassembly in
+ zone-member security Inside
+ duplex auto
+!
+interface Ethernet0/3
+ ip address 10.0.0.6 255.255.255.252
+ ip nat outside
+ ip virtual-reassembly in
+ zone-member security Outside
  ip ospf network point-to-point
  ip ospf 1 area 0
  duplex auto
 !
-interface Ethernet0/3
- ip address dhcp
- ip nat outside
- ip virtual-reassembly in
- duplex auto
-!
 router ospf 1
- router-id 3.3.3.3
+ router-id 4.4.4.4
  auto-cost reference-bandwidth 100000
- passive-interface Ethernet0/3
- default-information originate
 !
-ip nat inside source list nat-acl interface Ethernet0/3 overload
+ip nat inside source list Inside-Outside-acl interface Ethernet0/3 overload
+ip nat inside source static udp 192.168.30.100 53 10.0.0.6 53 extendable
+ip nat inside source static udp 192.168.30.100 67 10.0.0.6 67 extendable
+ip nat inside source static udp 192.168.30.100 123 10.0.0.6 123 extendable
 !
-ip access-list standard nat-acl
- permit ip 192.168.20.0 0.0.0.127 any
- permit ip 192.168.10.0 0.0.0.255 any
- permit ip host 10.0.0.6 any
+ip access-list extended Inside-Outside-acl
+ permit udp host 192.168.30.100 any eq domain
+ permit udp host 192.168.30.100 any eq ntp
+ip access-list extended Outside-Inside-acl
+ permit udp any host 192.168.30.100 eq bootps
+ permit udp any host 192.168.30.100 eq domain
+ permit udp any host 192.168.30.100 eq ntp
 
 ```
+
 ## Configuration Snippet of the DNS/DHCP server
 
 ```ios
