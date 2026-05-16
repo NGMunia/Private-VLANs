@@ -49,11 +49,12 @@ Below is the topology:
 
 | VLAN | Type              | Name        | Subnet             | Purpose                          |
 |------|-------------------|-------------|--------------------|----------------------------------|
-| 20   | Primary PVLAN     | RESIDENTIAL | 192.168.20.0/26    | Residential block addressing     |
-| 200  | Isolated PVLAN    | FLAT-ISO    | 192.168.20.0/26    | Per-flat tenant isolation        |
-| 201  | Community VLAN    | LOBBY       | 192.168.20.0/26    | Lobby Devices PCs                |
-| 10   | Standard VLAN     | CORPORATE   | 192.168.20.0/24    | Corporate LAN                    |
-|  -   | Services BLK      | DHCP/DNS    | 10.0.0.6/32        | DHCP/DNS server, DNS fowarding   |
+| 20   | Primary PVLAN     | RESIDENTIAL | 192.168.20.0/25    | Residential block addressing     |
+| 200  | Isolated PVLAN    | FLAT-ISO    | 192.168.20.0/25    | Per-flat tenant isolation        |
+| 201  | Community PVLAN   | RESIDENTIAL | 192.168.20.0/25    | Residential block Lobby          |
+| 10   | Standard VLAN     | CORPORATE   | 192.168.10.0/24    | Corporate LAN                    |
+|  -   | Firewall          | Firewall    | 10.0.0.6/32        | ZBF/PAT/Static NAT               |
+|  -   | Services BLK      | DHCP/DNS    | 192.168.30.0/24    | DHCP/DNS, DNS fowarding, NTP     |
 
 
 > **Note on PVLAN addressing:** Isolated/community ports in VLAN 200 still use the 192.168.20.0/26 address space. The PVLAN relationship maps VLAN 200/201 traffic up to primary VLAN 20, so the SVI on CORE-SW only needs one IP for the entire residential block — `192.168.20.0/26`.
@@ -97,13 +98,15 @@ CORE-SW is a Layer 3 switch and does all the heavy lifting:
 
 ---
 
-### Gateway / Router
+### Gateway / Fortigate Firewall
 
 The gateway handles NAT (overload/PAT) for all RFC 1918 (private address) traffic going to the internet. 
 - One interface toward CORE-SW (LAN-facing NAT inside)
 - One interface toward the internet (WAN-facing NAT Outside)
-- A `ip nat inside` / `ip nat outside` pair with an overload statement
+- Acts as a zone based firewall for LAN traffic between the LAN and the Internet and DNS/NTP/ICMP traffic between the DNS server and the Internet.
 
+
+![Firewall](/Firewall.png)
 ---
 
 ## Configuration Snippets
@@ -288,8 +291,8 @@ ip access-list standard nat-acl
 ## Configuration Snippet of the DNS/DHCP server
 
 ```ios
-!
-ip dhcp excluded-address 192.168.20.1 192.168.20.10
+
+ip dhcp excluded-address 192.168.20.1 192.168.20.4
 ip dhcp excluded-address 192.168.10.1 192.168.10.10
 !
 ip dhcp pool RESIDENTIAL-DHCP-POOL
@@ -309,17 +312,19 @@ ip dhcp pool CORPORATE-DHCP-POOL
 !
 !
 ip domain name munia.local
-ip host gateway.munia.local 10.0.0.2
-ip host core-sw.munia.local 192.168.10.1
+ip host core.munia.local 192.168.10.1
+ip host firewall.munia.local 10.0.0.2
+ip host corpsw.munia.local 192.168.10.10
 ip name-server 8.8.8.8
 ip name-server 8.8.4.4
 !
+!
 interface Ethernet0/0
- ip address 10.0.0.6 255.255.255.252
+ ip address 192.168.30.100
  no ip route-cache
  duplex auto
 !
-ip default-gateway 10.0.0.5
+ip default-gateway 192.168.30.1
 !
 ip dns server
 ```
