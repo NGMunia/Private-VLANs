@@ -71,7 +71,6 @@ PVLANs introduce a two-level VLAN hierarchy:
 
 In this topology:
 - **HSE-1 and HSE-2 connect to BLK-A-SW on isolated ports** in VLAN 200. This means the two home routers are completely blind to each other at Layer 2.
-- **PC3 and PC4 connect to BLK-A-SW on community ports** in VLAN 201. This means the two PCs can communicate with each other at Layer 2.
 - **BLK-A-SW's uplink to CORE-SW is a promiscuous trunk.** The core switch sees both VLAN 20 and the PVLAN mapping, which allows it to route residential traffic while still enforcing the isolation policy.
 - **CORE-SW has a promiscuous SVI on VLAN 10** (`interface Vlan20`). This is the gateway destination isolated ports and Community ports can reach directly out the internet.
 
